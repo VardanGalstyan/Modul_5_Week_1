@@ -2,7 +2,15 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs-extra'
 
-const pathJsonPost = join(dirname(fileURLToPath(import.meta.url)), '../data/posts.json')
+const { readJSON, writeJSON, writeFile } = fs
 
-export const readPosts = () => fs.readFile(pathJsonPost)
-export const writePosts = (content) => fs.writeFile(pathJsonPost, JSON.stringify(content, null, 2))
+const pathJsonPost = join(dirname(fileURLToPath(import.meta.url)), '../data/posts.json')
+const pathJsonAuthors = join(dirname(fileURLToPath(import.meta.url)), '../data/authors.json')
+const publicFolderPath = join(dirname(fileURLToPath(import.meta.url)), '../../public/img/posts')
+
+
+export const readPosts  = () => readJSON(pathJsonPost)
+export const readAuthors  = () => readJSON(pathJsonAuthors)
+export const writePosts = (content) => writeJSON(pathJsonPost, content,)
+export const writeAuthors = (content) => writeJSON(pathJsonAuthors, content)
+export const saveAvatar = (filename, content) => writeFile(join(publicFolderPath, filename), content)

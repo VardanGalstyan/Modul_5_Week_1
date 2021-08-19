@@ -1,0 +1,59 @@
+Validation Middleware 
+
+Step 1 - npm i express-validator.
+Step 2 - Create a Validation.js file, better in the services folder.
+Step 3 - Import {body} from express.validator
+Step 4 - 
+
+import { postValidation } from '../validation.js'
+import { validationResult } from 'express-validator'
+
+in index file. 
+
+export const postValidation =
+    [
+        body("author.name").exists().withMessage("Name is a mandatory filed!"),
+    ]
+
+postsRouter.post("/", postValidation, async (req, res, next) => {
+    try {
+        const errorList = validationResult(req)
+        if (!errorList.isEmpty()) {
+            res.status(400).send(errorList)  -->  next(createHttpError(400, {errorList})) // changes during the Error Handlers
+        } else {
+            let posts = JSON.parse(await readPosts())
+            const newPost = { ...req.body, id: uniqid(), createdAt: new Date().toISOString() }
+            posts.push(newPost)
+            await writePosts(posts)
+            res.status(201).send({ id: newPost.id })
+        }
+    } catch (error) {
+        console.log(error);
+        next(error)
+    }
+})
+
+Error Handlers
+
+Step 1. Create a file on root level or service level. 
+Step 2. npm i http-errors
+Step 3. Write errors _export const notFoundError = (err, req, res, next)_ and export it to server.use(error) (notFound 404, badRequest 400, forbidden 403, generic Service 500)
+Step 4. import createHttpErrors from httpErrors
+Step 5. 
+
+
+Photo Upload 
+
+Step 1. npm i multer. 
+Step 2. Create file folder in services.  file/index.js
+Step 3. import multer from 'multer'
+Step 4. filesRouter.post("/upload", multer().single('avatar'), async (req, res, next)
+Step 5. Postman.  post. body form-data key: file, select file, key:name
+Step 6. req.file {
+    fieldname: ""
+    originalname: ""
+    encoding: ""
+    mimetype: ""
+    buffer: ""
+    size: ""
+}
