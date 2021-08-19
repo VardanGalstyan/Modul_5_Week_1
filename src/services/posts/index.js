@@ -136,7 +136,7 @@ postsRouter.put("/:id/cover", multer().single('cover'),  async (req, res, next) 
             const filteredPosts = posts.filter(posts => posts.id !== req.params.id)
             filteredPosts.push(updatedPosts)
             await writePosts(filteredPosts)
-            res.status(201).send("File has been uploaded!", updatedPosts)
+            res.status(201).send(updatedPosts)
         }
     } catch (error) {
         console.log(error);

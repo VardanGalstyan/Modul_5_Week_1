@@ -106,7 +106,7 @@ authorRouter.put("/:id/avatar", multer().single('avatar'),  async (req, res, nex
             const filteredAuthor = authors.filter(author => author.id !== req.params.id)
             filteredAuthor.push(updatedAuthor)
             await writeAuthors(filteredAuthor)
-            res.status(201).send("The cover has been uploaded!", updatedAuthor)
+            res.status(201).send(updatedAuthor)
         }
     } catch (error) {
         console.log(error);
