@@ -10,7 +10,9 @@ const publicFolderPath = join(dirname(fileURLToPath(import.meta.url)), '../../pu
 
 
 export const readPosts  = () => readJSON(pathJsonPost)
-export const readAuthors  = () => readJSON(pathJsonAuthors)
 export const writePosts = (content) => writeJSON(pathJsonPost, content,)
+
+export const readAuthors  = () => readJSON(pathJsonAuthors)
 export const writeAuthors = (content) => writeJSON(pathJsonAuthors, content)
+
 export const saveAvatar = (filename, content) => writeFile(join(publicFolderPath, filename), content)

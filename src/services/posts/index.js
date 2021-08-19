@@ -1,9 +1,10 @@
 import { Router } from 'express'
 import { readPosts, writePosts } from '../../utilities/fs-utilities.js'
-import { postValidation } from '../validation.js'
+import { commentValidation, postValidation } from '../validation.js'
 import { validationResult } from 'express-validator'
 import createHttpError from 'http-errors'
 import uniqid from 'uniqid'
+import { calculateReadTime } from '../../utilities/wordCount.js'
 
 const postsRouter = Router()
 
@@ -35,6 +36,20 @@ postsRouter.get("/:id", async (req, res, next) => {
     }
 })
 
+postsRouter.get("/:id/comments", async (req, res, next) => {
+    try {
+        const posts = await readPosts()
+        const post = posts.find(post => post.id === req.params.id)
+        if(post){
+            res.send(post.comments)
+        } else {
+            next(createHttpError(404, `Comments for the Post of ID: ${req.params.id} are not found!`))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
 postsRouter.post("/", postValidation, async (req, res, next) => {
     try {
         const errorList = validationResult(req)
@@ -42,10 +57,39 @@ postsRouter.post("/", postValidation, async (req, res, next) => {
             next(createHttpError(400, { errorList }))
         } else {
             let posts = await readPosts()
-            const newPost = { ...req.body, id: uniqid(), createdAt: new Date().toISOString() }
+            const newPost = { ...req.body, readTime:calculateReadTime(req.body.content), id: uniqid(), createdAt: new Date().toISOString(), comments:[] }
             posts.push(newPost)
             await writePosts(posts)
             res.status(201).send({ id: newPost.id })
+        }
+    } catch (error) {
+        console.log(error);
+        next(error)
+    }
+})
+
+postsRouter.post("/:id/comments", commentValidation, async (req, res, next) => {
+    try {
+        const posts = await readPosts()
+        const filteredPosts = posts.filter(post => post.id !== req.params.id)
+        const post = posts.find(post => post.id === req.params.id)
+        console.log(post);
+        if(post){
+            const errorList = validationResult(req)
+            if (!errorList.isEmpty()) {
+                next(createHttpError(400, { errorList }))
+            } else {
+                const newComment = { commentId: uniqid(), ...req.body,  createdAt: new Date().toISOString() }
+                const arrayOfComments = post.comments
+                arrayOfComments.push(newComment)
+                console.log(arrayOfComments);
+                console.log(post);
+                const updatedPosts = {...post, comments: arrayOfComments}
+                filteredPosts.push(updatedPosts)
+                await writePosts(filteredPosts)
+                res.status(201).send('Uploaded Successfully')
+            }
+            createHttpError(404, `Post with ID #: ${req.params.id} cannot be found!`)
         }
     } catch (error) {
         console.log(error);
@@ -59,7 +103,7 @@ postsRouter.put("/:id", async (req, res, next) => {
         let posts = await readPosts()
         const findPost = posts.find(post => post.id === req.params.id)
         if (!findPost) {
-            createHttpError(404, `Post with ID #: ${req.params.id} cannot be found!`)
+            next(createHttpError(404, `Post with ID #: ${req.params.id} cannot be found!`))
         } else {
             const filteredPosts = posts.filter(post => post.id !== req.params.id)
             const updatedPost = { id: req.params.id, ...req.body, updatedAt: new Date().toISOString() }
@@ -90,6 +134,8 @@ postsRouter.delete("/:id", async (req, res, next) => {
         next(error)
     }
 })
+
+
 
 
 export default postsRouter
