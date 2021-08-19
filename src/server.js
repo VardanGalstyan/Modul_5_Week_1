@@ -3,7 +3,7 @@ import cors from 'cors'
 import listEndpoints from 'express-list-endpoints'
 import {join} from 'path'
 import postsRouter from './services/posts/index.js'
-import filesRouter from './services/file/index.js'
+// import filesRouter from './services/file/index.js'
 import authorRouter from './services/authors/index.js'
 import { badRequestError, forbiddenError, genericServerError, notFoundError } from './services/errorHandlers.js'
 
@@ -19,7 +19,7 @@ server.use(cors())
 server.use(express.json())
 
 server.use("/posts", postsRouter)
-server.use("/files", filesRouter)
+// server.use("/files", filesRouter)
 server.use("/authors", authorRouter)
 
 server.use(notFoundError)

@@ -13,6 +13,7 @@ filesRouter.post("/upload", multer().single('avatar'), async (req, res, next) =>
         next(err)
     }
 })
+
 filesRouter.post("/uploadMultiple", multer().array('avatar'), async (req, res, next) => {
     try {
         const arrayOfPromises = req.files.map(file => saveAvatar(req.file.originalname, req.file.buffer))

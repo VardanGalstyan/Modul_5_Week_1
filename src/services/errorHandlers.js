@@ -23,7 +23,6 @@ export const forbiddenError = (err, req, res, next) => {
 }
 
 export const genericServerError = (err, req, res, next) => {
-    console.log(error);
     res.status(500).send('Generic Server Error!')
 }
 

@@ -1,9 +1,11 @@
 import { Router } from 'express'
 import uniqid from 'uniqid'
-import { readAuthors, writeAuthors,readPosts } from '../../utilities/fs-utilities.js'
+import { readAuthors, writeAuthors,readPosts, saveAvatar } from '../../utilities/fs-utilities.js'
 import { authorValidation } from '../validation.js'
 import { validationResult } from 'express-validator'
 import createHttpError from 'http-errors'
+import multer from 'multer'
+import { extname } from 'path'
 
 
 const authorRouter = Router()
@@ -87,6 +89,29 @@ authorRouter.put("/:id", authorValidation, async (req, res, next) => {
         next(error)
     }
 
+})
+
+authorRouter.put("/:id/avatar", multer().single('avatar'),  async (req, res, next) => {
+    try {
+        const extension = extname(req.file.originalname)
+        const fileName = `${req.params.id}${extension}`
+        const authors = await readAuthors()
+        const author = authors.find(author => author.id === req.params.id)
+        if (!author) {
+            next(createHttpError(404, { errorList }))
+        } else {
+            await saveAvatar(fileName, req.file.buffer)
+            const avatarPath = `http://localhost:${process.env.PORT}/${fileName}`
+            const updatedAuthor = { id: req.params.id, ...author, avatar: avatarPath, updatedAt: new Date().toISOString() }
+            const filteredAuthor = authors.filter(author => author.id !== req.params.id)
+            filteredAuthor.push(updatedAuthor)
+            await writeAuthors(filteredAuthor)
+            res.status(201).send("The cover has been uploaded!", updatedAuthor)
+        }
+    } catch (error) {
+        console.log(error);
+        next(error)
+    }
 })
 
 authorRouter.delete("/:id", async (req, res, next) => {

@@ -1,10 +1,12 @@
 import { Router } from 'express'
-import { readPosts, writePosts } from '../../utilities/fs-utilities.js'
+import { readPosts, saveCover, writePosts } from '../../utilities/fs-utilities.js'
 import { commentValidation, postValidation } from '../validation.js'
 import { validationResult } from 'express-validator'
 import createHttpError from 'http-errors'
 import uniqid from 'uniqid'
 import { calculateReadTime } from '../../utilities/wordCount.js'
+import multer from 'multer'
+import { extname } from 'path'
 
 const postsRouter = Router()
 
@@ -118,6 +120,31 @@ postsRouter.put("/:id", async (req, res, next) => {
 
 })
 
+postsRouter.put("/:id/cover", multer().single('cover'),  async (req, res, next) => {
+    console.log(req.file);
+    try {
+        const extension = extname(req.file.originalname)
+        const fileName = `${req.params.id}${extension}`
+        const posts = await readPosts()
+        const post = posts.find(post => post.id === req.params.id)
+        if (!post) {
+            next(createHttpError(404, { errorList }))
+        } else {
+            await saveCover(fileName, req.file.buffer)
+            const coverPath = `http://localhost:${process.env.PORT}/${fileName}`
+            const updatedPosts = { id: req.params.id, ...post, cover: coverPath, updatedAt: new Date().toISOString() }
+            const filteredPosts = posts.filter(posts => posts.id !== req.params.id)
+            filteredPosts.push(updatedPosts)
+            await writePosts(filteredPosts)
+            res.status(201).send("File has been uploaded!", updatedPosts)
+        }
+    } catch (error) {
+        console.log(error);
+        next(error)
+    }
+
+})
+
 postsRouter.delete("/:id", async (req, res, next) => {
     try {
         let posts = await readPosts()
@@ -134,8 +161,6 @@ postsRouter.delete("/:id", async (req, res, next) => {
         next(error)
     }
 })
-
-
 
 
 export default postsRouter
