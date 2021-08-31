@@ -42,7 +42,7 @@ postsRouter.get("/:id/comments", async (req, res, next) => {
     try {
         const posts = await readPosts()
         const post = posts.find(post => post.id === req.params.id)
-        if(post){
+        if (post) {
             res.send(post.comments)
         } else {
             next(createHttpError(404, `Comments for the Post of ID: ${req.params.id} are not found!`))
@@ -59,7 +59,7 @@ postsRouter.post("/", postValidation, async (req, res, next) => {
             next(createHttpError(400, { errorList }))
         } else {
             let posts = await readPosts()
-            const newPost = { ...req.body, readTime:calculateReadTime(req.body.content), id: uniqid(), createdAt: new Date().toISOString(), comments:[] }
+            const newPost = { ...req.body, readTime: calculateReadTime(req.body.content), id: uniqid(), createdAt: new Date().toISOString(), comments: [] }
             posts.push(newPost)
             await writePosts(posts)
             res.status(201).send({ id: newPost.id })
@@ -75,18 +75,15 @@ postsRouter.post("/:id/comments", commentValidation, async (req, res, next) => {
         const posts = await readPosts()
         const filteredPosts = posts.filter(post => post.id !== req.params.id)
         const post = posts.find(post => post.id === req.params.id)
-        console.log(post);
-        if(post){
+        if (post) {
             const errorList = validationResult(req)
             if (!errorList.isEmpty()) {
                 next(createHttpError(400, { errorList }))
             } else {
-                const newComment = { commentId: uniqid(), ...req.body,  createdAt: new Date().toISOString() }
+                const newComment = { commentId: uniqid(), ...req.body, createdAt: new Date().toISOString() }
                 const arrayOfComments = post.comments
                 arrayOfComments.push(newComment)
-                console.log(arrayOfComments);
-                console.log(post);
-                const updatedPosts = {...post, comments: arrayOfComments}
+                const updatedPosts = { ...post, comments: arrayOfComments }
                 filteredPosts.push(updatedPosts)
                 await writePosts(filteredPosts)
                 res.status(201).send('Uploaded Successfully')
@@ -120,8 +117,7 @@ postsRouter.put("/:id", async (req, res, next) => {
 
 })
 
-postsRouter.put("/:id/cover", multer().single('cover'),  async (req, res, next) => {
-    console.log(req.file);
+postsRouter.put("/:id/cover", multer().single('cover'), async (req, res, next) => {
     try {
         const extension = extname(req.file.originalname)
         const fileName = `${req.params.id}${extension}`
