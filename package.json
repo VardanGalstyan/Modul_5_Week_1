@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/VardanGalstyan/Modul_5_Week_1#readme",
   "dependencies": {
+    "cloudinary": "^1.26.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-list-endpoints": "^6.0.0",
